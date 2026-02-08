@@ -270,12 +270,18 @@ jobs:
 **Решение:** обновить `requirements.txt` на совместимые версии:
 
 ```
-fastapi==0.109.0
-uvicorn==0.27.0
-pydantic==2.6.0
+fastapi==0.110.0
+uvicorn==0.28.0
+pydantic==2.8.0
 ```
 
 Эти версии имеют **предкомпилированные wheels** для Python 3.13 и устанавливаются быстро без ошибок.
+
+**Альтернатива:** если компиляция всё ещё происходит, установите **только pre-built wheels**:
+
+```bash
+pip install --only-binary :all: -r requirements.txt
+```
 
 ---
 
