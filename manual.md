@@ -121,6 +121,16 @@ python -m py_compile main.py
 python -c "import main; print('imported OK')"
 ```
 
+**Важно:** Если workflow запускается дважды на один пуш, причина — в `.github/workflows/ci.yml` указаны оба триггера (`push` и `pull_request`). Оставляем только `push`:
+
+```yaml
+on:
+  push:
+    branches: [ main ]
+```
+
+Это исключит дублирование для учебного проекта.
+
 ---
 
 ## Примеры ошибок для обучения (тестирование workflow)
@@ -172,7 +182,81 @@ ModuleNotFoundError: No module named 'fastapi'
 
 ---
 
-## Практические задания (рекомендуется)
+## Деплой на Railway
+
+Railway — это платформа для деплоя приложений прямо с GitHub (простой и бесплатный вариант для учебных проектов).
+
+### Шаг 1: Создать аккаунт на Railway
+1. Перейдите на [railway.app](https://railway.app)
+2. Нажмите `Start New Project`
+3. Выберите `Deploy from GitHub Repo`
+4. Авторизуйте GitHub (дайте Railway доступ к вашим репозиториям)
+
+### Шаг 2: Выбрать репозиторий и ветку
+1. Выберите репозиторий `ci-cd-simple`
+2. Выберите ветку `main`
+3. Railway автоматически обнаружит что это Python проект
+
+### Шаг 3: Добавить requirements.txt (важно!)
+Railway нужно знать, какие зависимости установить. Создайте файл `requirements.txt` в корне:
+
+```
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+```
+
+### Шаг 4: Добавить переменные окружения (опционально)
+На странице проекта в Railway:
+- Нажмите `Variables`
+- Добавьте переменные (если нужны, например для логирования)
+
+### Шаг 5: Дождитесь деплоя
+1. Railway автоматически запустит деплой
+2. Включит ваше приложение на публичный URL
+3. Вы увидите что-то вроде: `https://your-app-xxxx.railway.app`
+
+### Проверка
+После деплоя приложение будет доступно по URL:
+```
+https://your-app-xxxx.railway.app/health
+```
+
+А документация (Swagger UI):
+```
+https://your-app-xxxx.railway.app/docs
+```
+
+### Автоматический деплой
+После первого деплоя: каждый пуш в `main` автоматически обновит приложение на Railway!
+
+### Альтернатива: GitHub Actions для деплоя на Railway (опционально)
+
+Если хотите больше контроля, добавьте workflow файл `.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: railwayapp/deploy-action@v1
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+```
+
+Для этого нужно:
+1. На Railway: Settings → Tokens → создать новый токен
+2. На GitHub: Settings → Secrets → добавить `RAILWAY_TOKEN` с полученным токеном
+3. Пушить в `main` — деплой произойдёт автоматически
+
+---
 1. Добавьте `requirements.txt` и обновите workflow для установки зависимостей из него.
 2. Добавьте `pytest` и простой тест на импорт и ответ `GET /health`.
 3. Подключите линтер `ruff` или `flake8` и добавьте проверку в CI.

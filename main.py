@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Query
@@ -19,31 +17,31 @@ class CartItem(BaseModel):
 
 app = FastAPI(title="E-Shop")
 with open(Path(__file__).parent / "shop.json", "r", encoding="utf-8") as f:
-    PRODUCTS: list[dict] = json.load(f)
+    PRODUCTS = json.load(f)
 
-CART: list[dict] = []
-ORDERS: list[dict] = []
+CART = []
+ORDERS = []
 
 @app.get("/products")
-async def get_products() -> list[dict]
+async def get_products():
     return PRODUCTS
 
 @app.get("/product/{pid}")
-async def get_product(pid: int) -> dict:
+async def get_product(pid: int):
     if 0 <= pid < len(PRODUCTS):
         return PRODUCTS[pid]
     raise HTTPException(status_code=404, detail="Not found")
 
 @app.get("/search")
-async def search(q: str = Query(..., min_length=1)) -> list[dict]:
+async def search(q: str = Query(..., min_length=1)):
     return [p for p in PRODUCTS if q.lower() in p["name"].lower()]
 
 @app.get("/cart")
-async def get_cart() -> dict:
+async def get_cart():
     return {"items": CART, "total": sum(i["price"] for i in CART)}
 
 @app.post("/cart/add")
-async def add_cart(pid: int, qty: int = 1) -> dict:
+async def add_cart(pid: int, qty: int = 1):
     if not (0 <= pid < len(PRODUCTS)):
         raise HTTPException(status_code=404)
     p = PRODUCTS[pid]
@@ -51,12 +49,12 @@ async def add_cart(pid: int, qty: int = 1) -> dict:
     return {"ok": True}
 
 @app.delete("/cart")
-async def clear_cart() -> dict:
+async def clear_cart():
     CART.clear()
     return {"ok": True}
 
 @app.post("/checkout")
-async def checkout() -> dict:
+async def checkout():
     if not CART:
         raise HTTPException(status_code=400)
     total = sum(i["price"] for i in CART)
@@ -66,10 +64,10 @@ async def checkout() -> dict:
     return order
 
 @app.get("/orders")
-async def get_orders() -> list[dict]:
+async def get_orders():
     return ORDERS
 
 @app.get("/health")
-async def health() -> dict:
+async def health():
     return {"status": "ok", "products": len(PRODUCTS)}
 
