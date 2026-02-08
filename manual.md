@@ -186,6 +186,15 @@ ModuleNotFoundError: No module named 'fastapi'
 
 Railway — это платформа для деплоя приложений прямо с GitHub (простой и бесплатный вариант для учебных проектов).
 
+### Шаг 0: Добавить Procfile (важно!)
+Создайте файл `Procfile` в корне репозитория (без расширения):
+
+```
+web: uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+Это говорит Railway, как запустить приложение $PORT — переменная окружения, которую Railway выделяет вашему приложению).
+
 ### Шаг 1: Создать аккаунт на Railway
 1. Перейдите на [railway.app](https://railway.app)
 2. Нажмите `Start New Project`
