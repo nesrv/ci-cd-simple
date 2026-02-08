@@ -25,7 +25,7 @@ CART: list[dict] = []
 ORDERS: list[dict] = []
 
 @app.get("/products")
-async def get_products() -> list[dict]:
+async def get_products() -> list[dict]
     return PRODUCTS
 
 @app.get("/product/{pid}")

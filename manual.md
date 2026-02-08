@@ -1,58 +1,193 @@
 manual.md
 
-Создай директорию для workflows:
+# Методичка: E-Shop FastAPI (минималистичный учебный проект)
+
+## Цели методички
+- Пошагово объяснить, как подготовить окружение и запустить `main.py` локально.
+- Показать базовую структуру API и примеры вызовов.
+- Объяснить минимальный CI (GitHub Actions) и как он запускается.
+- Дать практические задания для закрепления знаний.
+
+## Требования
+- Python 3.13+
+- Git (для работы с репозиторием и CI)
+- Рекомендуется виртуальное окружение
+
+## Структура проекта (корневая)
+- `main.py` — основное FastAPI приложение
+- `agents.py` — альтернативная копия (удобно для экспериментов)
+- `shop.json` — данные товаров
+- `.github/workflows/ci.yml` — минимальный CI workflow
+- `README.md`, `manual.md` — документация
+
+---
+
+## Быстрая установка (локально)
+1. Клонируйте репозиторий и перейдите в папку:
 
 ```bash
-mkdir -p .github/workflows
+git clone <repo-url>
+cd CI-CD-SIMPLE
 ```
 
-## Первый CI pipeline
+2. Создайте и активируйте виртуальное окружение:
 
-### для main.py создай Минимальный CI pipeline workflow для GitHub Actions
-
-Создан минимальный workflow: `.github/workflows/ci.yml` — он проверяет синтаксис и импортирует `main.py`.
-
-Файл workflow (пример):
-
-```yaml
-name: CI
-
-on:
-	push:
-		branches: [ main ]
-	pull_request:
-		branches: [ main ]
-
-jobs:
-	check:
-		name: Syntax and import check
-		runs-on: ubuntu-latest
-
-		steps:
-			- name: Checkout
-				uses: actions/checkout@v4
-
-			- name: Setup Python
-				uses: actions/setup-python@v4
-				with:
-					python-version: '3.13'
-
-			- name: Install dependencies
-				run: |
-					python -m pip install --upgrade pip
-					pip install fastapi pydantic uvicorn
-
-			- name: Syntax check
-				run: python -m py_compile main.py
-
-			- name: Import app
-				run: |
-					python -c "import main; print('imported OK')"
+Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
 ```
 
-Этот workflow минимален и подходит для быстрого CI: он убеждается, что `main.py` синтактически корректен и что модуль можно импортировать без ошибок.
+Linux/macOS:
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 
-После пуша в ветку `main` или создания PR GitHub Actions автоматически выполнит эти шаги.
+3. Установите зависимости:
+
+```bash
+python -m pip install --upgrade pip
+pip install fastapi uvicorn pydantic
+```
+
+---
+
+## Запуск приложения
+Для разработки с авто-перезагрузкой:
+
+```bash
+uvicorn main:app --reload
+```
+
+После запуска приложение доступно по адресу: `http://localhost:8000`.
+Интерактивная документация: `http://localhost:8000/docs`.
+
+---
+
+## Короткое описание API (минимум)
+- `GET /products` — получить список всех товаров
+- `GET /product/{id}` — получить товар по ID (ID начинается с 0)
+- `GET /search?q=...` — поиск по названию
+- `GET /cart` — просмотр корзины (items + total)
+- `POST /cart/add?pid={id}&qty={n}` — добавить в корзину
+- `DELETE /cart` — очистить корзину
+- `POST /checkout` — оформить заказ (из текущей корзины)
+- `GET /orders` — список заказов
+- `GET /health` — проверка состояния приложения
+
+Примеры curl:
+
+```bash
+# Все товары
+curl http://localhost:8000/products
+
+# Поиск
+curl "http://localhost:8000/search?q=RTX"
+
+# Добавить в корзину
+curl -X POST "http://localhost:8000/cart/add?pid=0&qty=2"
+
+# Оформить заказ
+curl -X POST http://localhost:8000/checkout
+```
+
+---
+
+
+
+## Минимальный CI (GitHub Actions)
+Файл workflow расположен в `.github/workflows/ci.yml`. Его задача — быстро проверить, что `main.py` не содержит синтаксических ошибок и успешно импортируется.
+
+Триггеры:
+- пуш в ветку `main`
+- Pull Request в `main`
+
+Основные шаги workflow:
+1. `actions/checkout` — получить код репозитория.
+2. `actions/setup-python` (Python 3.13).
+3. Установка зависимостей (`pip install fastapi pydantic uvicorn`).
+4. `python -m py_compile main.py` — проверка синтаксиса.
+5. `python -c \"import main\"` — пробный импорт модуля.
+
+Где смотреть прогон: вкладка `Actions` в GitHub → выбрать workflow `CI` → посмотреть логи.
+
+Локальная проверка тех же шагов:
+
+```bash
+python -m pip install --upgrade pip
+pip install fastapi pydantic uvicorn
+python -m py_compile main.py
+python -c "import main; print('imported OK')"
+```
+
+---
+
+## Примеры ошибок для обучения (тестирование workflow)
+
+Чтобы убедиться, что CI работает и ловит ошибки, можно специально добавить ошибку в `main.py`, запушить и посмотреть, как workflow её ловит.
+
+### Пример 1: Синтаксическая ошибка
+
+Откройте `main.py` и добавьте ошибку (например, забудьте закрыть скобку):
+
+```python
+@app.get("/products")
+async def get_products() -> list[dict]
+    return PRODUCTS  # Пропущена двоеточие выше
+```
+
+При пуше workflow выполнит `python -m py_compile main.py` и вернёт ошибку:
+```
+SyntaxError: invalid syntax
+```
+
+Посмотреть в: вкладка `Actions` → workflow `CI` → log с красной ошибкой.
+
+### Пример 2: Ошибка импорта
+
+Добавьте неправильный импорт в начало `main.py`:
+
+```python
+from nonexistent_module import something  # Этого модуля не существует
+```
+
+Workflow выполнит `python -c "import main"` и упадёт:
+```
+ModuleNotFoundError: No module named 'nonexistent_module'
+```
+
+### Пример 3: Проверка зависимостей
+
+Если удалить `fastapi` из `pip install`, workflow понимает, что импорт невозможен:
+```
+ModuleNotFoundError: No module named 'fastapi'
+```
+
+### Как исправить после ошибки
+1. Исправьте ошибку в коде локально.
+2. Проверьте локально: `python -m py_compile main.py` и `python -c "import main"`.
+3. Запушьте исправленный код.
+4. Workflow снова запустится и должен пройти успешно (зелёная галочка).
+
+---
+
+## Практические задания (рекомендуется)
+1. Добавьте `requirements.txt` и обновите workflow для установки зависимостей из него.
+2. Добавьте `pytest` и простой тест на импорт и ответ `GET /health`.
+3. Подключите линтер `ruff` или `flake8` и добавьте проверку в CI.
+4. Перенесите хранение корзины в файл или простую базу данных (например SQLite).
+
+---
+
+## Советы и замечания
+- В текущем учебном проекте корзина и заказы хранятся в памяти — данные теряются при перезапуске.
+- Для продакшена используйте базу данных и хранение секретов через `GH Secrets` или переменные окружения.
+- ID товаров — индекс в `shop.json` (начинается с 0).
+
+---
+
+Если хотите, я могу расширить методичку: добавить раздел с примерами тестов (`pytest`), `requirements.txt`, и дополнить CI шагами для тестов и линтинга.
 
 ### Как это происходит (кратко)
 
