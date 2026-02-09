@@ -280,7 +280,7 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        run: railway deploy --force
+        run: railway deploy
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 ```
@@ -289,7 +289,7 @@ jobs:
 - `on: push` — при пуше в `main`
 - `actions/checkout` — получить код репозитория
 - `npm install -g @railway/cli` — установить Railway CLI
-- `railway deploy --force` — задеплоить на Railway
+- `railway deploy` — задеплоить на Railway
 - Каждый пуш → автоматический деплой
 
 ### Вариант 2: Деплой с тестами (рекомендуется)
@@ -333,7 +333,7 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        run: railway deploy --force
+        run: railway deploy
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 ```
