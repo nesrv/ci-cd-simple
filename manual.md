@@ -18,8 +18,67 @@
 - `main.py` — основное FastAPI приложение
 - `agents.py` — альтернативная копия (удобно для экспериментов)
 - `shop.json` — данные товаров
+- `.env.example` — шаблон переменных окружения для разработки
+- `.env` — реальные переменные (НЕ коммитится в git)
 - `.github/workflows/ci.yml` — минимальный CI workflow
+- `.github/workflows/deploy.yml` — деплой на Railway
 - `README.md`, `manual.md` — документация
+
+---
+
+## Переменные окружения (.env)
+
+### Что такое .env?
+
+`.env` файл хранит **конфигурацию и секреты** для локальной разработки:
+- API токены
+- Настройки базы данных
+- DEBUG режимы
+- И т.д.
+
+### Почему .env не коммитится в git?
+
+- Содержит **секретные данные** (токены, пароли)
+- Каждый разработчик имеет свой `.env`
+- На Production используются GitHub Secrets или переменные окружения сервера
+
+### Установка:
+
+1. **Скопируйте шаблон:**
+
+```bash
+cp .env.example .env
+```
+
+2. **Отредактируйте `.env` если нужно:**
+
+```bash
+# .env файл
+DEBUG=True
+LOG_LEVEL=info
+RAILWAY_TOKEN=your_token_here
+```
+
+3. **Python приложение сможет читать эти переменные:**
+
+```python
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Загружает переменные из .env
+
+DEBUG = os.getenv("DEBUG", "False")
+RAILWAY_TOKEN = os.getenv("RAILWAY_TOKEN", "")
+```
+
+(Для этого нужна библиотека `python-dotenv`: `pip install python-dotenv`)
+
+### На Production (GitHub Actions):
+
+На GitHub используются **GitHub Secrets** вместо `.env`:
+- `RAILWAY_TOKEN` хранится в `Settings → Secrets → Actions`
+- В workflow доступен как `${{ secrets.RAILWAY_TOKEN }}`
+- `.env` файл не нужен на сервере
 
 ---
 
@@ -32,7 +91,25 @@ git clone <repo-url>
 cd CI-CD-SIMPLE
 ```
 
-2. Создайте и активируйте виртуальное окружение:
+2. **Создайте файл `.env` для локальной разработки:**
+
+Скопируйте `.env.example` в `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Отредактируйте `.env` при необходимости (опционально):
+```
+DEBUG=True
+LOG_LEVEL=info
+PORT=8000
+RAILWAY_TOKEN=your_token_here  # Опционально, только если тестируете локально
+```
+
+**Важно:** `.env` файл НЕ коммитится в git (добавлен в `.gitignore`) — это для локальной разработки и секретов.
+
+3. Создайте и активируйте виртуальное окружение:
 
 Windows:
 
@@ -48,7 +125,7 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-3. Установите зависимости:
+4. Установите зависимости:
 
 ```bash
 python -m pip install --upgrade pip
