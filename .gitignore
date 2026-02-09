@@ -41,9 +41,10 @@ venv*/
 *.sublime-project
 *.sublime-workspace
 
-# Environment variables
+# Environment variables (НЕ коммитить в git!)
 .env
 .env.*
+!.env.example
 
 # macOS
 .DS_Store
