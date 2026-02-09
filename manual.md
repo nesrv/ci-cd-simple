@@ -261,6 +261,8 @@ https://your-app-xxxx.railway.app/docs
 
 Если хотите больше контроля, добавьте workflow файл `.github/workflows/deploy.yml`:
 
+### Вариант 1: Простейший деплой (без тестов)
+
 ```yaml
 name: Deploy to Railway
 
@@ -277,6 +279,71 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 ```
+
+**Как это работает:**
+- `on: push` — при пуше в `main`
+- `actions/checkout` — получить код репозитория
+- `railwayapp/deploy-action` — задеплоить на Railway
+- Каждый пуш → автоматический деплой
+
+### Вариант 2: Деплой с тестами (рекомендуется)
+
+```yaml
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test before deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi pydantic uvicorn pytest httpx
+
+      - name: Run tests
+        run: pytest -v test_main.py
+
+  deploy:
+    name: Deploy to Railway
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: railwayapp/deploy-action@v1
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+```
+
+**Как это работает:**
+- `jobs: test` — первый job: запускает тесты
+- `jobs: deploy` — второй job: деплой на Railway
+- `needs: test` — деплой начнется **только если тесты прошли**
+- Если тесты упали → деплой не произойдет (защита от багов) 🛑
+
+**Результат:**
+```
+git push main
+    ↓
+1️⃣ Запускаются тесты (pytest -v test_main.py)
+    ↓
+✅ Все прошли? → 2️⃣ Деплой на Railway
+❌ Упали? → Стоп, деплой не запустится
+```
+
+**Рекомендуется использовать Вариант 2** — это стандартная практика CI/CD и выявляет ошибки до деплоя!
 
 Для этого нужно:
 
