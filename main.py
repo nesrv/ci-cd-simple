@@ -15,7 +15,7 @@ class CartItem(BaseModel):
     quantity: int
     price: float
 
-app = FastAPI(title="E-Shop")
+app = FastAPI(title="E-Shop-СI-CD")
 with open(Path(__file__).parent / "shop.json", "r", encoding="utf-8") as f:
     PRODUCTS = json.load(f)
 
