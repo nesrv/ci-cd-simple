@@ -275,7 +275,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: railwayapp/deploy-action@v1
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway deploy --force
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 ```
@@ -283,7 +288,8 @@ jobs:
 **Как это работает:**
 - `on: push` — при пуше в `main`
 - `actions/checkout` — получить код репозитория
-- `railwayapp/deploy-action` — задеплоить на Railway
+- `npm install -g @railway/cli` — установить Railway CLI
+- `railway deploy --force` — задеплоить на Railway
 - Каждый пуш → автоматический деплой
 
 ### Вариант 2: Деплой с тестами (рекомендуется)
@@ -322,7 +328,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: railwayapp/deploy-action@v1
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway deploy --force
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 ```
