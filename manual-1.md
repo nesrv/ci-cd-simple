@@ -1,191 +1,26 @@
-# Методичка: E-Shop FastAPI (минималистичный учебный проект)
+# Практическое занятие
+## Изучение CI/CD
+
+## Часть 2 Continius Delivery (CD)
+
+## Цели
+
+- Объяснить процесс деплоя
+- Дать практические задания для закрепления знаний.
 
 ## Цели методички
 
-- Пошагово объяснить, как подготовить окружение и запустить `main.py` локально.
-- Показать базовую структуру API и примеры вызовов.
-- Объяснить минимальный CI (GitHub Actions) и как он запускается.
+- ...
+- Объяснить ...
 - Дать практические задания для закрепления знаний.
-
-## Требования
-
-- Python 3.13+
-- Git (для работы с репозиторием и CI)
-- Рекомендуется виртуальное окружение
 
 ## Структура проекта (корневая)
 
 - `main.py` — основное FastAPI приложение
-- `agents.py` — альтернативная копия (удобно для экспериментов)
 - `shop.json` — данные товаров
 - `.github/workflows/ci.yml` — минимальный CI workflow
-- `README.md`, `manual.md` — документация
+- 
 
----
-
-## Быстрая установка (локально)
-
-1. Клонируйте репозиторий и перейдите в папку:
-
-```bash
-git clone <repo-url>
-cd CI-CD-SIMPLE
-```
-
-2. Создайте и активируйте виртуальное окружение:
-
-Windows:
-
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-Linux/macOS:
-
-```bash
-python -m venv venv
-source venv/bin/activate
-```
-
-3. Установите зависимости:
-
-```bash
-python -m pip install --upgrade pip
-pip install fastapi uvicorn pydantic
-```
-
----
-
-## Запуск приложения
-
-Для разработки с авто-перезагрузкой:
-
-```bash
-uvicorn main:app --reload
-```
-
-После запуска приложение доступно по адресу: `http://localhost:8000`.
-Интерактивная документация: `http://localhost:8000/docs`.
-
----
-
-## Короткое описание API (минимум)
-
-- `GET /products` — получить список всех товаров
-- `GET /product/{id}` — получить товар по ID (ID начинается с 0)
-- `GET /search?q=...` — поиск по названию
-
-Примеры curl:
-
-```bash
-# Все товары
-curl http://localhost:8000/products
-
-# Поиск
-curl "http://localhost:8000/search?q=RTX"
-
-# Добавить в корзину
-curl -X POST "http://localhost:8000/cart/add?pid=0&qty=2"
-
-# Оформить заказ
-curl -X POST http://localhost:8000/checkout
-```
-
----
-
-## Минимальный CI (GitHub Actions)
-
-Файл workflow расположен в `.github/workflows/ci.yml`. Его задача — быстро проверить, что `main.py` не содержит синтаксических ошибок и успешно импортируется.
-
-Триггеры:
-
-- пуш в ветку `main`
-- Pull Request в `main`
-
-Основные шаги workflow:
-
-1. `actions/checkout` — получить код репозитория.
-2. `actions/setup-python` (Python 3.13).
-3. Установка зависимостей (`pip install fastapi pydantic uvicorn`).
-4. `python -m py_compile main.py` — проверка синтаксиса.
-5. `python -c \"import main\"` — пробный импорт модуля.
-
-Где смотреть прогон: вкладка `Actions` в GitHub → выбрать workflow `CI` → посмотреть логи.
-
-Локальная проверка тех же шагов:
-
-```bash
-python -m pip install --upgrade pip
-pip install fastapi pydantic uvicorn
-python -m py_compile main.py
-python -c "import main; print('imported OK')"
-```
-
-**Важно:** Если workflow запускается дважды на один пуш, причина — в `.github/workflows/ci.yml` указаны оба триггера (`push` и `pull_request`). Оставляем только `push`:
-
-```yaml
-on:
-  push:
-    branches: [ main ]
-```
-
-Это исключит дублирование для учебного проекта.
-
----
-
-## Примеры ошибок для обучения (тестирование workflow)
-
-Чтобы убедиться, что CI работает и ловит ошибки, можно специально добавить ошибку в `main.py`, запушить и посмотреть, как workflow её ловит.
-
-### Пример 1: Синтаксическая ошибка
-
-Откройте `main.py` и добавьте ошибку (например, забудьте закрыть скобку):
-
-```python
-@app.get("/products")
-async def get_products() -> list[dict]
-    return PRODUCTS  # Пропущена двоеточие выше
-```
-
-При пуше workflow выполнит `python -m py_compile main.py` и вернёт ошибку:
-
-```
-SyntaxError: invalid syntax
-```
-
-Посмотреть в: вкладка `Actions` → workflow `CI` → log с красной ошибкой.
-
-### Пример 2: Ошибка импорта
-
-Добавьте неправильный импорт в начало `main.py`:
-
-```python
-from nonexistent_module import something  # Этого модуля не существует
-```
-
-Workflow выполнит `python -c "import main"` и упадёт:
-
-```
-ModuleNotFoundError: No module named 'nonexistent_module'
-```
-
-### Пример 3: Проверка зависимостей
-
-Если удалить `fastapi` из `pip install`, workflow понимает, что импорт невозможен:
-
-```
-ModuleNotFoundError: No module named 'fastapi'
-```
-
-### Как исправить после ошибки
-
-1. Исправьте ошибку в коде локально.
-2. Проверьте локально: `python -m py_compile main.py` и `python -c "import main"`.
-3. Запушьте исправленный код.
-4. Workflow снова запустится и должен пройти успешно (зелёная галочка).
-
----
 
 ## Деплой на Railway
 
@@ -210,7 +45,7 @@ web: uvicorn main:app --host 0.0.0.0 --port $PORT
 
 ### Шаг 2: Выбрать репозиторий и ветку
 
-1. Выберите репозиторий `ci-cd-simple`
+1. Выберите свой репозиторий `name_repo`
 2. Выберите ветку `main`
 3. Railway автоматически обнаружит что это Python проект
 
@@ -223,8 +58,6 @@ fastapi==0.109.0
 uvicorn==0.27.0
 pydantic==2.6.0
 ```
-
-**Важно:** используйте **новые версии** пакетов, совместимые с Python 3.13! Старые версии (например pydantic<2.6) содержат Rust компоненты, которые требуют компиляции на Railway и вызывают ошибки.
 
 ### Шаг 4: Добавить переменные окружения (опционально)
 
@@ -293,7 +126,6 @@ jobs:
 
 ---
 
-
 ## Возможные проблемы и решения
 
 ### Проблема: `pydantic-core` не компилируется на Railway (Python 3.13)
@@ -323,10 +155,8 @@ pip install --only-binary :all: -r requirements.txt
 ## Практические задания (рекомендуется)
 
 1. Добавьте тесты с помощью `pytest` для проверки работы API endpoints.
-
-
-
 2. Подключите линтер `ruff` или `flake8` и добавьте проверку в CI.
+
 ---
 
 добавьте дополнительные эндпоинты в проект. После добавления каждого эндпоинта запускайте ci-cd
@@ -347,9 +177,7 @@ pip install --only-binary :all: -r requirements.txt
 ---
 
 3. Перенесите хранение корзины в файл или простую базу данных (например SQLite).
-
 4. Добавьте логирование в приложение.
-
 
 Если хотите, я могу расширить методичку: добавить раздел с примерами тестов (`pytest`), `requirements.txt`, и дополнить CI шагами для тестов и линтинга.
 

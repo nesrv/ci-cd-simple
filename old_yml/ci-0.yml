@@ -1,5 +1,8 @@
+# Учебный CI: проверка синтаксиса и импорта Python-приложения
+
 name: CI
 
+# Когда запускать: при push и PR в ветку main
 on:
   push:
     branches: [ main ]
@@ -12,22 +15,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      # --- Python ---
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.13'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install fastapi pydantic uvicorn
-
-      - name: Syntax check
-        run: python -m py_compile main.py
-
-      - name: Import app
-        run: |
-          python -c "import main; print('imported OK')"
+      - run: |
+          pip install --upgrade pip
+          pip install fastapi pydantic black
+      # --- Проверки ---
+      - run: black --check .
+      - run: python -m py_compile main.py
+      - run: python -c "import main; print('imported OK')"

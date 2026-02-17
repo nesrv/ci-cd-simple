@@ -21,7 +21,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi pydantic uvicorn pytest httpx
+          pip install fastapi pydantic uvicorn pytest httpx black
+
+      - name: Black check
+        run: black --check .
 
       - name: Syntax check
         run: python -m py_compile main.py
@@ -32,3 +35,14 @@ jobs:
 
       - name: Run tests
         run: pytest -v test_main.py
+
+      # Проверка, что приложение поднимается через uvicorn и отвечает
+      - name: Uvicorn smoke test
+        run: |
+          uvicorn main:app --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 15); do
+            curl -sf http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8000/health | python -c "import sys,json; d=json.load(sys.stdin); assert d.get('status')=='ok', d; print('uvicorn OK')"
+          curl -sf http://127.0.0.1:8000/products | python -c "import sys,json; d=json.load(sys.stdin); assert isinstance(d,list) and len(d)>0; print('products OK')"
