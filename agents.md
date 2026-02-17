@@ -1,3 +1,28 @@
+
+Deploy to Railway
+- Ошибка была: `railway up --service` без значения. Нужно передать имя сервиса.
+- В workflow теперь: `railway up --service ${{ secrets.RAILWAY_SERVICE || 'web' }}` — по умолчанию сервис **web** (как при `railway link`).
+- Опционально: в GitHub → Settings → Secrets → Actions можно задать `RAILWAY_SERVICE` = `web` (или другое имя), иначе используется `web`.
+
+Раньше:
+Run railway up --service 
+error: a value is required for '--service <SERVICE>' but none was supplied
+
+For more information, try '--help'.
+
+Error: Process completed with exit code 1.
+
+PS C:\W26\project\CI-CD-SIMPLE> railway link        
+> Select a workspace Серов Николай's Projects
+> Select a project luminous-curiosity
+> Select an environment production
+> Select a service <esc to skip> web
+
+Project luminous-curiosity linked successfully! 🎉
+
+**Пояснение:** luminous-curiosity — это **проект** (project). **Сервис** (service) внутри него — **web**. Для деплоя нужен именно сервис: `--service web`.
+
+
 git Actions дает ошибку
 
 Run black --check .
