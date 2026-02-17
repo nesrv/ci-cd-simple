@@ -1,27 +1,51 @@
+измени cd/cd для github actions и railway с учетом postgres в докере 
+
+в бд есть таблица
+ TABLE video_cards (
+    id          BIGSERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    price       NUMERIC(12,2) NOT NULL,
+    description TEXT,
+    created_at  TIMESTAMPTZ NOT NULL
+);
+
+измени @app.get("/products") в main.py для получения списка видекарт из бд
+
+
+@app.get("/products")
+
+asyncdefget_products():
+
+    returnPRODUCTS
+
+
+для данного проекта сделай самый простой docker-compose для postgesql 17
+в main.py сделай подключение к бд в контейнере
 
 Deploy to Railway
+
 - Ошибка была: `railway up --service` без значения. Нужно передать имя сервиса.
 - В workflow теперь: `railway up --service ${{ secrets.RAILWAY_SERVICE || 'web' }}` — по умолчанию сервис **web** (как при `railway link`).
 - Опционально: в GitHub → Settings → Secrets → Actions можно задать `RAILWAY_SERVICE` = `web` (или другое имя), иначе используется `web`.
 
 Раньше:
-Run railway up --service 
-error: a value is required for '--service <SERVICE>' but none was supplied
+Run railway up --service
+error: a value is required for '--service `<SERVICE>`' but none was supplied
 
 For more information, try '--help'.
 
 Error: Process completed with exit code 1.
 
-PS C:\W26\project\CI-CD-SIMPLE> railway link        
+PS C:\W26\project\CI-CD-SIMPLE> railway link
+
 > Select a workspace Серов Николай's Projects
 > Select a project luminous-curiosity
 > Select an environment production
-> Select a service <esc to skip> web
+> Select a service `<esc to skip>` web
 
 Project luminous-curiosity linked successfully! 🎉
 
 **Пояснение:** luminous-curiosity — это **проект** (project). **Сервис** (service) внутри него — **web**. Для деплоя нужен именно сервис: `--service web`.
-
 
 git Actions дает ошибку
 
@@ -55,7 +79,6 @@ LECTION\lect-1.md
 сделай 40 слайдов презентации в формате md
 
 8 картинок в исходнике тоже будут слайдами
-
 
 LECTION\lection-part1.md
 улучши и актуализируй контент для лектора (доктор наук, грейн синьор)

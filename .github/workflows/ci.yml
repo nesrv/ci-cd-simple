@@ -9,6 +9,28 @@ jobs:
     name: Syntax, Import and Tests
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: eshop
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app -d eshop"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USER: app
+      DB_PASSWORD: app
+      DB_NAME: eshop
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,7 +43,33 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi pydantic uvicorn pytest httpx black
+          pip install -r requirements.txt
+
+      - name: Init PostgreSQL
+        run: |
+          python -c "
+          import psycopg2
+          import time
+          for _ in range(10):
+              try:
+                  c = psycopg2.connect(host='127.0.0.1', port=5432, user='app', password='app', dbname='eshop')
+                  c.close()
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Postgres not ready')
+          with open('scripts/init_db.sql') as f:
+              sql = f.read()
+          sql = '\n'.join(l for l in sql.split('\n') if not l.strip().startswith('--'))
+          conn = psycopg2.connect(host='127.0.0.1', port=5432, user='app', password='app', dbname='eshop')
+          conn.autocommit = True
+          for stmt in sql.split(';'):
+              s = stmt.strip()
+              if s:
+                  conn.cursor().execute(s)
+          conn.close()
+          "
 
       - name: Black check
         run: black --check .
@@ -36,7 +84,7 @@ jobs:
       - name: Run tests
         run: pytest -v test_main.py
 
-      # Проверка, что приложение поднимается через uvicorn и отвечает
+      # Проверка, что приложение поднимается через uvicorn и отвечает (с БД в Docker)
       - name: Uvicorn smoke test
         run: |
           uvicorn main:app --host 127.0.0.1 --port 8000 &

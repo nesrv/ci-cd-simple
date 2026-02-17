@@ -1,8 +1,25 @@
 import json
+import os
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from pathlib import Path
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+# Параметры подключения к PostgreSQL (из env или значения по умолчанию для docker-compose)
+DB_CONFIG = {
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "user": os.getenv("DB_USER", "app"),
+    "password": os.getenv("DB_PASSWORD", "app"),
+    "dbname": os.getenv("DB_NAME", "eshop"),
+}
+
+
+def get_db_connection():
+    """Создаёт подключение к PostgreSQL."""
+    return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
 
 
 class Product(BaseModel):
@@ -28,7 +45,27 @@ ORDERS = []
 
 @app.get("/products")
 async def get_products():
-    return PRODUCTS
+    """Возвращает список видеокарт из таблицы video_cards."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, name, price, description, created_at FROM video_cards ORDER BY id"
+            )
+            rows = cur.fetchall()
+        # Приводим к типам, удобным для JSON (Decimal -> float, datetime -> str)
+        return [
+            {
+                "id": r["id"],
+                "name": r["name"],
+                "price": float(r["price"]),
+                "description": r["description"] or "",
+                "created_at": r["created_at"].isoformat() if r["created_at"] else "",
+            }
+            for r in rows
+        ]
+    finally:
+        conn.close()
 
 
 @app.get("/product/{pid}")
@@ -81,4 +118,16 @@ async def get_orders():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "products": len(PRODUCTS)}
+    """Проверка живости приложения и подключения к PostgreSQL."""
+    db_ok = False
+    try:
+        conn = get_db_connection()
+        conn.close()
+        db_ok = True
+    except Exception:
+        pass
+    return {
+        "status": "ok",
+        "products": len(PRODUCTS),
+        "database": "ok" if db_ok else "error",
+    }
