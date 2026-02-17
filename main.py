@@ -4,8 +4,8 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from pathlib import Path
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import psycopg
+from psycopg.rows import dict_row
 
 # Параметры подключения к PostgreSQL (из env или значения по умолчанию для docker-compose)
 DB_CONFIG = {
@@ -18,8 +18,8 @@ DB_CONFIG = {
 
 
 def get_db_connection():
-    """Создаёт подключение к PostgreSQL."""
-    return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
+    """Создаёт подключение к PostgreSQL (psycopg v3)."""
+    return psycopg.connect(**DB_CONFIG, row_factory=dict_row)
 
 
 class Product(BaseModel):
