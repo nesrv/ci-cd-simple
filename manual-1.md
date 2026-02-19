@@ -286,7 +286,9 @@ async def get_products():
 
 ---
 
-## 3.5 Все эндпоинты в main.py замени на хранимые в бд sql(или pl/pgsql функции)
+## 3.5 Самостоятельная часть
+
+Все эндпоинты в `main.py` замените на вызовы хранимых в БД SQL- или PL/pgSQL-функций.
 
 ```py
 # код main.py
@@ -294,13 +296,13 @@ async def get_products():
 
 ```
 
-
 ```sql
--- хранимые функции postgresql
+-- хранимые функции PostgreSQL
 
 
 ```
 
+---
 
 ## 3.6 Job deploy — деплой на Railway
 
@@ -338,6 +340,24 @@ deploy:
 4. **Deploy to Railway** — `railway up` загружает код в Railway. Аргумент `--service` обязателен (по умолчанию `web`, если не задан секрет `RAILWAY_SERVICE`). Переменная `RAILWAY_TOKEN` берётся из GitHub Secrets.
 
 **Секреты:** `RAILWAY_TOKEN` (обязательно), `RAILWAY_SERVICE` (опционально, по умолчанию `web`).
+## 3.6 Самостоятельная часть
+
+Все эндпоинты в `main.py` замените на вызовы хранимых в БД SQL- или PL/pgSQL-функций.
+
+```py
+# код main.py
+
+
+```
+
+```sql
+-- хранимые функции PostgreSQL
+
+
+```
+
+---
+
 
 ---
 

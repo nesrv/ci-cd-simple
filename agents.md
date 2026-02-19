@@ -1,3 +1,7 @@
+переделай main.py и создай func.sql для задачи:
+
+Все эндпоинты в main.py замени на хранимые в бд sql функции
+
 измени cd/cd для github actions и railway с учетом postgres в докере 
 
 в бд есть таблица

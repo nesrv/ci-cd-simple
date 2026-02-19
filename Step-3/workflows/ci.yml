@@ -1,13 +1,14 @@
-name: Deploy to Railway
+name: CI
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  test:
-    name: Test before deploy
+  check:
+    name: Syntax, Import and Tests
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:17
@@ -49,7 +50,7 @@ jobs:
           python -c "
           import psycopg
           import time
-          for _ in range(30):
+          for _ in range(10):
               try:
                   c = psycopg.connect(host='127.0.0.1', port=5432, user='app', password='app', dbname='eshop')
                   c.close()
@@ -70,31 +71,26 @@ jobs:
           conn.close()
           "
 
-      - name: Init func.sql (таблицы и хранимые функции)
+      - name: Black check
+        run: black --check .
+
+      - name: Syntax check
+        run: python -m py_compile main.py
+
+      - name: Import app
         run: |
-          docker run --rm --network host -e PGPASSWORD=app -v $PWD/scripts:/scripts postgres:17 \
-            psql -h 127.0.0.1 -U app -d eshop -f /scripts/func.sql
+          python -c "import main; print('imported OK')"
 
       - name: Run tests
         run: pytest -v test_main.py
 
-  deploy:
-    name: Deploy to Railway
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
+      # Проверка, что приложение поднимается через uvicorn и отвечает (с БД в Docker)
+      - name: Uvicorn smoke test
         run: |
-          railway up --service ${{ secrets.RAILWAY_SERVICE || 'web' }}
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          uvicorn main:app --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 15); do
+            curl -sf http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8000/health | python -c "import sys,json; d=json.load(sys.stdin); assert d.get('status')=='ok', d; print('uvicorn OK')"
+          curl -sf http://127.0.0.1:8000/products | python -c "import sys,json; d=json.load(sys.stdin); assert isinstance(d,list) and len(d)>0; print('products OK')"
