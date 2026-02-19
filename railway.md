@@ -116,8 +116,11 @@ docker-compose up -d db
    - `DB_HOST` = хост из Railway (например `monolith.proxy.rlwy.net`)
    - `DB_PORT` = порт (например `12345`)
    - `DB_USER`, `DB_PASSWORD`, `DB_NAME` = из настроек Postgres в Railway
+3. **Один раз создайте таблицу и данные:** выполните `scripts/init_db.sql` на прод-БД. Варианты:
+   - В Railway: откройте Postgres → **Data** или **Query** и вставьте содержимое `scripts/init_db.sql`, выполните.
+   - Локально: `psql` или любой клиент, подключённый к прод-БД по хост/порт/логин из Variables, выполните `\i scripts/init_db.sql` или вставьте SQL вручную.
 
-Либо, если Railway выдаёт одну строку `DATABASE_URL`, в приложении можно читать её и парсить (или задать отдельные переменные вручную).
+Если `/products` отдаёт **500** или **503** — чаще всего не заданы `DB_*` или таблица `video_cards` ещё не создана (шаг 3).
 
 ---
 

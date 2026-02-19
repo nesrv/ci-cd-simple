@@ -49,21 +49,8 @@ async def get_products():
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT id, name, price, description, created_at FROM video_cards ORDER BY id"
-            )
-            rows = cur.fetchall()
-        # Приводим к типам, удобным для JSON (Decimal -> float, datetime -> str)
-        return [
-            {
-                "id": r["id"],
-                "name": r["name"],
-                "price": float(r["price"]),
-                "description": r["description"] or "",
-                "created_at": r["created_at"].isoformat() if r["created_at"] else "",
-            }
-            for r in rows
-        ]
+            cur.execute("SELECT id, name, price, description, created_at FROM video_cards ORDER BY id")
+            return [{**dict(r), "price": float(r["price"])} for r in cur.fetchall()]
     finally:
         conn.close()
 
